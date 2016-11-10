@@ -21,7 +21,7 @@ func FailWithError(t *testing.T, name string, err error) {
 	t.FailNow()
 }
 
-var noMatch = fmt.Errorf("TLV records don't match")
+var errNoMatch = fmt.Errorf("TLV records don't match")
 
 func TestTLVRead(t *testing.T) {
 	descr := []byte("This is a test description.")
@@ -43,13 +43,13 @@ func TestTLVRead(t *testing.T) {
 	if err != nil {
 		FailWithError(t, "TestTLVRead", err)
 	}
-	tmpTLV, err := TLVFromBytes(tlvRaw)
+	tmpTLV, err := FromBytes(tlvRaw)
 	if err != nil {
 		FailWithError(t, "TestTLVRead", err)
 	}
 
 	if !Equal(tlv, tmpTLV) {
-		FailWithError(t, "TestTLVRead", noMatch)
+		FailWithError(t, "TestTLVRead", errNoMatch)
 	}
 
 	tmpFile, err = os.Open(tmpName)
@@ -60,7 +60,7 @@ func TestTLVRead(t *testing.T) {
 	if err != nil {
 		FailWithError(t, "TestTLVRead", err)
 	} else if !Equal(tlv, tmpTLV) {
-		FailWithError(t, "TestTLVRead", noMatch)
+		FailWithError(t, "TestTLVRead", errNoMatch)
 	}
 
 }
@@ -80,16 +80,16 @@ func TestTLVListAdd(t *testing.T) {
 
 	tmpTLV, err := tlvl.Get(TypeTest1)
 	if err != nil {
-		FailWithError(t, "TestTLVListAdd", noMatch)
+		FailWithError(t, "TestTLVListAdd", errNoMatch)
 	} else if !Equal(tmpTLV, tlv1) {
-		FailWithError(t, "TestTLVListAdd", noMatch)
+		FailWithError(t, "TestTLVListAdd", errNoMatch)
 	}
 
 	tmpTLV, err = tlvl.Get(TypeTest2)
 	if err != nil {
-		FailWithError(t, "TestTLVListAdd", noMatch)
+		FailWithError(t, "TestTLVListAdd", errNoMatch)
 	} else if !Equal(tmpTLV, tlv2) {
-		FailWithError(t, "TestTLVListAdd", noMatch)
+		FailWithError(t, "TestTLVListAdd", errNoMatch)
 	}
 }
 
@@ -238,7 +238,7 @@ func TestTLVListReadWrite(t *testing.T) {
 		if err != nil {
 			FailWithError(t, "TestTLVListReadWrite", err)
 		} else if !Equal(testTLV, rTLV) {
-			FailWithError(t, "TestTLVListReadWrite", noMatch)
+			FailWithError(t, "TestTLVListReadWrite", errNoMatch)
 		}
 	}
 }

@@ -40,10 +40,7 @@ func (o *object) Value() []byte {
 // Equal returns true if a pair of TLV objects are the same.
 func Equal(tlv1, tlv2 TLV) bool {
 	if tlv1 == nil {
-		if tlv2 == nil {
-			return true
-		}
-		return false
+		return tlv2 == nil
 	} else if tlv2 == nil {
 		return false
 	} else if tlv1.Type() != tlv2.Type() {
@@ -59,7 +56,7 @@ func Equal(tlv1, tlv2 TLV) bool {
 var (
 	// ErrTLVRead is returned when there is an error reading a TLV object.
 	ErrTLVRead = fmt.Errorf("TLV %s", "read error")
-	// TLVWrite is returned when  there is an error writing a TLV object.
+	// ErrTLVWrite is returned when  there is an error writing a TLV object.
 	ErrTLVWrite = fmt.Errorf("TLV %s", "write error")
 	// ErrTypeNotFound is returned when a request for a TLV type is made and none can be found.
 	ErrTypeNotFound = fmt.Errorf("TLV %s", "type not found")
@@ -75,8 +72,8 @@ func New(typ byte, val []byte) TLV {
 	return tlv
 }
 
-// TLVFromBytes returns a TLV object from bytes
-func TLVFromBytes(data []byte) (TLV, error) {
+// FromBytes returns a TLV object from bytes
+func FromBytes(data []byte) (TLV, error) {
 	objBuf := bytes.NewBuffer(data)
 	return ReadObject(objBuf)
 }
@@ -91,14 +88,14 @@ func ReadObject(r io.Reader) (TLV, error) {
 	if err != nil {
 		return nil, err
 	}
-	tlv.typ = byte(typ)
+	tlv.typ = typ
 
 	var length int32
 	err = binary.Read(r, binary.BigEndian, &length)
 	if err != nil {
 		return nil, err
 	}
-	tlv.len = int32(length)
+	tlv.len = length
 
 	tlv.val = make([]byte, tlv.Length())
 	l, err := r.Read(tlv.val)
@@ -111,7 +108,7 @@ func ReadObject(r io.Reader) (TLV, error) {
 	return tlv, nil
 }
 
-// WriteObject writes a TLV record to io.Writer
+// WriteObject writes a TLV object to io.Writer
 func WriteObject(tlv TLV, w io.Writer) error {
 	var err error
 
@@ -137,26 +134,26 @@ func WriteObject(tlv TLV, w io.Writer) error {
 	return nil
 }
 
-// TLVList is ad double-linked list containing TLV objects.
-type TLVList struct {
+// List is ad double-linked list containing TLV objects.
+type List struct {
 	objects *list.List
 }
 
 // NewList returns a new, empty TLVList.
-func NewList() *TLVList {
-	tl := new(TLVList)
+func NewList() *List {
+	tl := new(List)
 	tl.objects = list.New()
 	return tl
 }
 
 // Length returns the number of objects int the TLVList.
-func (tl *TLVList) Length() int32 {
+func (tl *List) Length() int32 {
 	return int32(tl.objects.Len())
 }
 
 // Get checks the TLVList for any object matching the type, It returns the first one found.
 // If the type could not be found, Get returns ErrTypeNotFound.
-func (tl *TLVList) Get(typ byte) (TLV, error) {
+func (tl *List) Get(typ byte) (TLV, error) {
 	for e := tl.objects.Front(); e != nil; e = e.Next() {
 		if e.Value.(*object).Type() == typ {
 			return e.Value.(*object), nil
@@ -167,7 +164,7 @@ func (tl *TLVList) Get(typ byte) (TLV, error) {
 
 // GetAll checks the TLVList for all objects matching the type, returning a slice containing all matching objects.
 // If no object has the requested type, an empty slice is returned.
-func (tl *TLVList) GetAll(typ byte) []TLV {
+func (tl *List) GetAll(typ byte) []TLV {
 	ts := make([]TLV, 0)
 	for e := tl.objects.Front(); e != nil; e = e.Next() {
 		if e.Value.(*object).Type() == typ {
@@ -178,8 +175,8 @@ func (tl *TLVList) GetAll(typ byte) []TLV {
 }
 
 // Remove removes all objects with the requested type.
-// It returns a count of the number of removed records.
-func (tl *TLVList) Remove(typ byte) int {
+// It returns a count of the number of removed objects.
+func (tl *List) Remove(typ byte) int {
 	var totalRemoved int
 	for {
 		var removed int
@@ -200,7 +197,7 @@ func (tl *TLVList) Remove(typ byte) int {
 
 // RemoveObject takes an TLV object as an argument, and removes all matching objects.
 // It matches on not just type, but also the value contained in the object.
-func (tl *TLVList) RemoveObject(obj TLV) int {
+func (tl *List) RemoveObject(obj TLV) int {
 	var totalRemoved int
 	for {
 		var removed int
@@ -221,18 +218,18 @@ func (tl *TLVList) RemoveObject(obj TLV) int {
 }
 
 // Add pushes a new TLV object onto the TLVList. It builds the object from its args
-func (tl *TLVList) Add(typ byte, value []byte) {
+func (tl *List) Add(typ byte, value []byte) {
 	obj := New(typ, value)
 	tl.objects.PushBack(obj)
 }
 
 // AddObject adds a TLV object onto the TLVList
-func (tl *TLVList) AddObject(obj TLV) {
+func (tl *List) AddObject(obj TLV) {
 	tl.objects.PushBack(obj)
 }
 
 // Write writes out the TLVList to an io.Writer.
-func (tl *TLVList) Write(w io.Writer) error {
+func (tl *List) Write(w io.Writer) error {
 	for e := tl.objects.Front(); e != nil; e = e.Next() {
 		err := WriteObject(e.Value.(TLV), w)
 		if err != nil {
@@ -243,7 +240,7 @@ func (tl *TLVList) Write(w io.Writer) error {
 }
 
 // Read takes an io.Reader and builds a TLVList from that.
-func Read(r io.Reader) (*TLVList, error) {
+func Read(r io.Reader) (*List, error) {
 	tl := NewList()
 	var err error
 	for {
