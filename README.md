@@ -1,5 +1,7 @@
 ## TLV
 
+[![GoDoc](https://godoc.org/github.com/Akagi201/tlv?status.svg)](https://godoc.org/github.com/Akagi201/tlv)
+
 [TLV](https://en.wikipedia.org/wiki/Type-length-value) is the representative of type-length-value.
 
 It might be found in a binary file format or a network protocol.
