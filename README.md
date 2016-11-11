@@ -35,3 +35,6 @@ Embedded TLV Objects:
 | Type  | Length  | Type  | Length  |    Value    |
 +-------+---------+-------+---------+-------------+
 ```
+
+## Wireshark Plugin
+* Put [wssdl](https://github.com/diacritic/wssdl/releases/download/v0.2.0/wssdl.lua) and [tlv.lua](/wireshark/tlv.lua) to `~/.config/wireshark/plugins`
