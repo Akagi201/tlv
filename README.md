@@ -38,3 +38,4 @@ Embedded TLV Objects:
 
 ## Wireshark Plugin
 * Put [wssdl](https://github.com/diacritic/wssdl/releases/download/v0.2.0/wssdl.lua) and [tlv.lua](/wireshark/tlv.lua) to `~/.config/wireshark/plugins`
+* The UDP port 8327 will be decoded as tlv protocol.
