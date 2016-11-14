@@ -78,6 +78,14 @@ func FromBytes(data []byte) (TLV, error) {
 	return ReadObject(objBuf)
 }
 
+// ToBytes returns bytes from a TLV object
+func ToBytes(tlv TLV) ([]byte, error) {
+	data := make([]byte, 0)
+	objBuf := bytes.NewBuffer(data)
+	err := WriteObject(tlv, objBuf)
+	return objBuf.Bytes(), err
+}
+
 // ReadObject returns a TLV object from io.Reader
 func ReadObject(r io.Reader) (TLV, error) {
 	tlv := new(object)
